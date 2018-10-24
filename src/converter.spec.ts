@@ -1,32 +1,32 @@
 import {Converter} from './converter';
-import {Convert} from './decorators';
+import {ConvertProperty} from './decorators';
 import {assert} from 'chai';
 
 class NestedClass {
-  @Convert()
+  @ConvertProperty()
   s: string;
 }
 
 class ConvertTarget {
-  @Convert()
+  @ConvertProperty()
   s: string;
 
-  @Convert()
+  @ConvertProperty()
   n: number;
 
-  @Convert()
+  @ConvertProperty()
   d: Date;
 
-  @Convert()
+  @ConvertProperty()
   b: boolean;
 
-  @Convert()
+  @ConvertProperty()
   nil: null;
 
-  @Convert()
+  @ConvertProperty()
   nestedPlain: {};
 
-  @Convert()
+  @ConvertProperty()
   nestedClass: NestedClass;
 
   // design:type メタデータが出力されないため、型変換が発生しない
@@ -115,6 +115,28 @@ describe('converter', () => {
       const converter = new Converter();
       const result = converter.convert({noConvert: 'abc'}, ConvertTarget);
       assert.typeOf(result.noConvert, 'string');
+    });
+    it('ignoreMissingTypeInfoが指定されていて変換先の型が不明な場合、値がセットされない', () => {
+      const converter = new Converter();
+      const result = converter.convert({noConvert: 'abc'}, ConvertTarget, {ignoreMissingTypeInfo: true});
+      assert.isUndefined(result.noConvert);
+    });
+    it('excludesが指定されているプロパティには値がセットされない', () => {
+      const converter = new Converter();
+      // s以外のプロパティをすべて除外する
+      const result = converter.convert({
+        s: 'abc',
+        b: true,
+        n: 123,
+        noConvert: 'abc',
+      }, ConvertTarget, {
+          excludes: [
+            'b',
+            (key) => key === 'n',
+            /no/
+          ]
+        });
+      assert.deepEqual(result, {s: 'abc'});
     });
   });
   describe('register()', () => {
