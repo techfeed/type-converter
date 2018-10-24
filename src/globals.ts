@@ -6,10 +6,6 @@ import {Constructor, ConvertOp} from './types';
 
 const GLOBAL_CONVERTER = new Converter();
 
-export function convertObject<T>(value: any, ctor: {new(...args: any[]): T}): T {
-  return GLOBAL_CONVERTER.convertObject(value, ctor);
-}
-
 export function convertArray<T>(values: any[], targetType: Constructor<T>): T[] {
   return GLOBAL_CONVERTER.convertArray(values, targetType);
 }

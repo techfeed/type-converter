@@ -8,7 +8,7 @@ export function convertToString(value: any): string | undefined | null {
     return value;
   }
   if (value instanceof Date) {
-    return value.toISOString()
+    return value.toISOString();
   }
   return String(value);
 }
