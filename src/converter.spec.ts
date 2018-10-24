@@ -28,6 +28,9 @@ class ConvertTarget {
 
   @Convert()
   nestedClass: NestedClass;
+
+  // design:type メタデータが出力されないため、型変換が発生しない
+  noConvert: number;
 }
 
 class ObjectID {
@@ -107,6 +110,11 @@ describe('converter', () => {
       const result = converter.convert({nestedClass: {s: 123}}, ConvertTarget);
       assert.instanceOf(result.nestedClass, NestedClass);
       assert.equal(result.nestedClass.s, '123');
+    });
+    it('変換先の型が不明な場合、型変換が行われない', () => {
+      const converter = new Converter();
+      const result = converter.convert({noConvert: 'abc'}, ConvertTarget);
+      assert.typeOf(result.noConvert, 'string');
     });
   });
   describe('register()', () => {

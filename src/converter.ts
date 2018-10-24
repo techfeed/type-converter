@@ -34,6 +34,11 @@ export class Converter {
     for (const key of Object.keys(value)) {
       const type = Reflect.getMetadata('design:type', result, key);
       const propVal = value[key];
+      // 変換先の型が不明な場合、型変換を行わない
+      if (!type) {
+        result[key] = propVal;
+        continue;
+      }
       if (propVal instanceof Array) {
         result[key] = this.convertArray(propVal, type);
       } else {
