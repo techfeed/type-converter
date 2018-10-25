@@ -7,6 +7,14 @@ import {convertToString, convertToNumber, convertToDate, convertToBoolean} from 
 import {ConvertOptions, ConvertPropertyOptions} from './options';
 import {METADATA_KEY_CONVERTABLE, METADATA_KEY_CONVERT_PROP} from './decorators';
 
+/**
+ * 型変換を行うクラス。
+ * デフォルトでは、以下の型に関する変換メソッドが登録されており、それぞれ`convertToXXX()`メソッドが割り当てられています。
+ * - number
+ * - boolean
+ * - string
+ * - Date
+ */
 export class Converter {
   private _converters = new Map<Constructor<any>, ConvertOp<any>>();
 
@@ -16,57 +24,67 @@ export class Converter {
     this._registerDefaultConverters();
   }
 
-
-  convertArray<T>(values: any[], targetType: Constructor<T>, options?: ConvertOptions): T[] {
-    return values.map(value => this.convert(value, targetType, options));
-  }
-  convert<T>(value: any, targetType: Constructor<T>, options?: ConvertOptions): T {
-    if (value instanceof Array) {
-      throw new Error('Cannot convert array. Use convertArray()');
+  /**
+   * 型の変換を行います。
+   */
+  convert<T>(src: any[], dstType: Constructor<T>, options?: ConvertOptions): T[];
+  convert<T>(src: any, dstType: Constructor<T>, options?: ConvertOptions): T;
+  convert(src: any, dstType: Constructor<any>, options?: ConvertOptions): any {
+    if (src instanceof Array) {
+      return src.map(elem => this.convert(elem, dstType, options));
     }
-    const converter = this._converters.get(targetType);
+    const converter = this._converters.get(dstType);
     if (converter) {
-      return converter(value, options);
+      return converter(src, options);
     }
-    return this._convertObject(value, <ClassConstructor<T>>targetType.prototype.constructor, options);
+    return this._convertObject(src, <ClassConstructor<any>>dstType, options);
   }
 
+  /**
+   * 型変換を行う関数を登録します。
+   */
   register<T>(targetType: Constructor<T>, converter: ConvertOp<T>): void {
     this._converters.set(targetType, converter);
   }
-  private _convertObject<T>(value: any, ctor: {new(...args: any[]): T}, options?: ConvertOptions): T {
-    const mergedOpts = this._mergeConvertOptions(ctor, options);
-    const result: any = new ctor();
-    for (const key of Object.keys(value)) {
+
+  /**
+   * srcからdstへのプロパティコピーを行います。
+   * その際に、dstTypeの型情報に基づいて型変換を行います。
+   */
+  populate<T>(src: any, dst: any, dstType: Constructor<T>, options?: ConvertOptions): void {
+    const mergedOpts = this._mergeConvertOptions(dstType, options);
+    for (const key of Object.keys(src)) {
       if (this._isExcludeTarget(key, mergedOpts)) {
         continue;
       }
       // @ConvertPropertyが付与されたプロパティの場合、propOptsが取得できる
       const propOpts: ConvertPropertyOptions | undefined =
-        Reflect.getMetadata(METADATA_KEY_CONVERT_PROP, result, key);
+        Reflect.getMetadata(METADATA_KEY_CONVERT_PROP, dst, key);
       // @ConvertPropertyが指定されていないとき、オプションに応じて処理をスキップ
       if (!propOpts && mergedOpts.target === 'decorated') {
         continue;
       }
       // プロパティの型情報を @ConvertProperty()のオプション、もしくはデコレータ（サードパーティ製含む）が付与された
       // プロパティのdesign:typeメタデータから取得
-      const type = (propOpts && propOpts.type) || Reflect.getMetadata('design:type', result, key);
-      const propVal = value[key];
+      const type = (propOpts && propOpts.type) || Reflect.getMetadata('design:type', dst, key);
+      const propVal = src[key];
       // 変換先の型が不明
       if (!type) {
         // 型変換を行わずに相手先のオブジェクトに挿入するオプション
         if (mergedOpts.target === 'all') {
-          result[key] = propVal;
+          dst[key] = propVal;
         }
         continue;
       }
-      if (propVal instanceof Array) {
-        result[key] = this.convertArray(propVal, type, mergedOpts);
-      } else {
-        result[key] = this.convert(propVal, type, mergedOpts);
-      }
+      dst[key] = this.convert(propVal, type, mergedOpts);
     }
-    return result;
+    return dst;
+  }
+
+  private _convertObject<T>(src: any, dstType: {new(...args: any[]): T}, options?: ConvertOptions): T {
+    const dst: any = new dstType();
+    this.populate(src, dst, dstType, options);
+    return dst;
   }
   private _mergeConvertOptions(type: Constructor<any>, options?: ConvertOptions): ConvertOptions {
     const decoratorOpts = Reflect.getMetadata(METADATA_KEY_CONVERTABLE, type);

@@ -72,10 +72,6 @@ describe('converter', () => {
       assert.propertyVal(converter.convert({s: undefined}, ConvertTarget), 's', undefined, 'undefined is not changed');
       assert.propertyVal(converter.convert({s: null}, ConvertTarget), 's', null, 'null is not changed');
     });
-    it('配列を渡すとエラーになる', () => {
-      const converter = new Converter();
-      assert.throw(() => converter.convert([], ConvertTarget));
-    });
     it('様々な型からstringへの変換をデフォルトで行える', () => {
       const converter = new Converter();
       const date = new Date();
@@ -133,6 +129,11 @@ describe('converter', () => {
       const result = converter.convert({nestedClass: {s: 123}}, ConvertTarget);
       assert.instanceOf(result.nestedClass, NestedClass);
       assert.equal(result.nestedClass.s, '123');
+    });
+    it('配列全ての要素が変換される', () => {
+      const converter = new Converter();
+      const array = converter.convert([1, 2, 3], String);
+      assert.sameOrderedMembers(['1', '2', '3'], array);
     });
   });
   describe('ConvertOptions', () => {
@@ -220,13 +221,6 @@ describe('converter', () => {
       const objectId = converter.convert('abc', ObjectID);
       assert.instanceOf(objectId, ObjectID);
       assert.equal(objectId.toString(), 'abc');
-    });
-  });
-  describe('convertArray', () => {
-    it('配列全ての要素が変換される', () => {
-      const converter = new Converter();
-      const array = converter.convertArray([1, 2, 3], String);
-      assert.sameOrderedMembers(['1', '2', '3'], array);
     });
   });
 });
