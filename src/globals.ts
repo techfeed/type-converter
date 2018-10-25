@@ -4,15 +4,10 @@
 import {Converter} from './converter';
 import {Constructor, ConvertOp} from './types';
 
-const GLOBAL_CONVERTER = new Converter();
+export const GLOBAL_CONVERTER = new Converter();
 
-export function convertArray<T>(values: any[], targetType: Constructor<T>): T[] {
-  return GLOBAL_CONVERTER.convertArray(values, targetType);
-}
-export function convert<T>(value: any, targetType: Constructor<T>): T {
+export function convert<T>(value: any, targetType: Constructor<T>): T[];
+export function convert<T>(value: any, targetType: Constructor<T>): T;
+export function convert(value: any, targetType: Constructor<any>): any {
   return GLOBAL_CONVERTER.convert(value, targetType);
-}
-
-export function register<T>(targetType: Constructor<T>, converter: ConvertOp<T>): void {
-  GLOBAL_CONVERTER.register(targetType, converter);
 }
