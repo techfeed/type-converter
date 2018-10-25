@@ -1,6 +1,7 @@
 import {Converter} from './converter';
 import {ConvertProperty, Convertable} from './decorators';
 import {assert} from 'chai';
+import {ConversionError} from './types';
 
 class NestedClass {
   @ConvertProperty()
@@ -135,6 +136,35 @@ describe('converter', () => {
     });
   });
   describe('ConvertOptions', () => {
+    it('オプションはメソッド引数、デコレータ、Converterの順に優先される', () => {
+      // Converterのオプションに指定してみるが、デコレータの指定（'n'のみ除外）が優先される。
+      const converter = new Converter({excludes: ['s', 'n'], target: 'decorated'});
+      let result = converter.convert({
+          s: 'abc',
+          n: 123
+      }, OptionSpecified);
+      assert.equal(result.s, 'abc');
+      assert.isUndefined(result.n);
+
+      // メソッド引数で、excludesを空にする
+      result = converter.convert({
+        s: 'abc',
+        n: 123
+      }, OptionSpecified, {excludes: []});
+      assert.equal(result.s, 'abc');
+      assert.equal(result.n, 123);
+    });
+    it('suppressConversionErrorにtrueを指定されていると、ConversionErrorの発生が抑制される', () => {
+      const converter = new Converter();
+      // まずConversionErrorの発生を確認
+      assert.throws(() => converter.convert({n: 'abc'}, ConvertTarget), ConversionError);
+      // 抑制
+      assert.doesNotThrow(() => converter.convert({n: 'abc'}, ConvertTarget, {suppressConversionError: true}));
+
+      // Date型でも確認
+      assert.throws(() => converter.convert({d: 'abc'}, ConvertTarget), ConversionError);
+      assert.doesNotThrow(() => converter.convert({d: 'abc'}, ConvertTarget, {suppressConversionError: true}));
+    });
     it('includes: "all"が指定されていて変換先の型が不明な場合も値がセットされる', () => {
       const converter = new Converter();
       const result = converter.convert({notDecorated: 'abc'}, OptionSpecified, {target: 'all'});

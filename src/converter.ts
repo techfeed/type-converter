@@ -35,8 +35,8 @@ export class Converter {
     this._converters.set(targetType, converter);
   }
   private _convertObject<T>(value: any, ctor: {new(...args: any[]): T}, options?: ConvertOptions): T {
+    const mergedOpts = this._mergeConvertOptions(ctor, options);
     const result: any = new ctor();
-    const mergedOpts = this._mergeConvertOptions(result, options);
     for (const key of Object.keys(value)) {
       if (this._isExcludeTarget(key, mergedOpts)) {
         continue;
@@ -68,11 +68,14 @@ export class Converter {
     }
     return result;
   }
-  private _mergeConvertOptions(target: any, options?: ConvertOptions): ConvertOptions {
-    const decoratorOpts = Reflect.getMetadata(METADATA_KEY_CONVERTABLE, target);
-    const opts: ConvertOptions = Object.assign({}, this.options, decoratorOpts, options);
-    opts.target = opts.target || 'typed';
-    return opts;
+  private _mergeConvertOptions(type: Constructor<any>, options?: ConvertOptions): ConvertOptions {
+    const decoratorOpts = Reflect.getMetadata(METADATA_KEY_CONVERTABLE, type);
+    const defaultOpts: ConvertOptions = {
+      target: 'typed',
+      excludes: [],
+      suppressConversionError: false,
+    };
+    return Object.assign(defaultOpts, this.options, decoratorOpts, options);
   }
   private _isExcludeTarget(key: string, options: ConvertOptions): boolean {
     const {excludes} = options;
