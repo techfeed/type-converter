@@ -1,6 +1,7 @@
 import {ConversionError} from './types';
+import {ConvertOptions} from './options';
 
-export function convertToString(value: any): string | undefined | null {
+export function convertToString(value: any, options?: ConvertOptions): string | undefined | null {
   if (value === undefined || value === null) {
     return value;
   }
@@ -13,7 +14,7 @@ export function convertToString(value: any): string | undefined | null {
   return String(value);
 }
 
-export function convertToNumber(value: any): number | undefined | null  {
+export function convertToNumber(value: any, options?: ConvertOptions): number | undefined | null  {
   if (value === undefined || value === null) {
     return value;
   }
@@ -21,12 +22,12 @@ export function convertToNumber(value: any): number | undefined | null  {
     return value;
   }
   const result = parseInt(String(value), 10);
-  if (isNaN(result)) {
+  if (options && !options.suppressConversionError && isNaN(result)) {
     throw new ConversionError(`Cannot convert to number: ${value}`);
   }
   return result;
 }
-export function convertToDate(value: any): Date | undefined | null  {
+export function convertToDate(value: any, options?: ConvertOptions): Date | undefined | null  {
   if (value === undefined || value === null) {
     return value;
   }
@@ -37,12 +38,12 @@ export function convertToDate(value: any): Date | undefined | null  {
     return new Date(value);
   }
   const result = new Date(String(value));
-  if (result.toString() === 'Invalid Date') {
+  if (options && !options.suppressConversionError && result.toString() === 'Invalid Date') {
     throw new ConversionError(`Cannot convert to date: ${value}`);
   }
   return result;
 }
 
-export function convertToBoolean(value: any): boolean | undefined | null {
+export function convertToBoolean(value: any, options?: ConvertOptions): boolean | undefined | null {
   return Boolean(value);
 }

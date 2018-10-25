@@ -12,12 +12,12 @@ export function Convertable(options?: ConvertOptions): {
   (target: Function): void;
   (target: Object, propertyKey: string | symbol): void;
 } {
-  return Reflect.metadata(METADATA_KEY_CONVERTABLE, options);
+  return Reflect.metadata(METADATA_KEY_CONVERTABLE, options || {});
 }
 
 export function ConvertProperty(options?: ConvertPropertyOptions): {
   (target: Function): void;
   (target: Object, propertyKey: string | symbol): void;
 } {
-  return Reflect.metadata(METADATA_KEY_CONVERT_PROP, options);
+  return Reflect.metadata(METADATA_KEY_CONVERT_PROP, options || {});
 }

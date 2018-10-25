@@ -1,5 +1,5 @@
 import {Converter} from './converter';
-import {ConvertProperty} from './decorators';
+import {ConvertProperty, Convertable} from './decorators';
 import {assert} from 'chai';
 
 class NestedClass {
@@ -39,6 +39,28 @@ class ObjectID {
   toString(): string {
     return this.s;
   }
+}
+
+function ThirdPartyDecorator(): any {
+  return function (): any {};
+}
+
+@Convertable({
+  target: 'all',
+  suppressConversionError: false,
+  excludes: ['n'],
+})
+class OptionSpecified {
+  @ConvertProperty()
+  s: string;
+
+  @ConvertProperty()
+  n: number;
+
+  @ThirdPartyDecorator()
+  decoratedByThirdParty: string;
+
+  notDecorated: string;
 }
 
 describe('converter', () => {
@@ -111,15 +133,34 @@ describe('converter', () => {
       assert.instanceOf(result.nestedClass, NestedClass);
       assert.equal(result.nestedClass.s, '123');
     });
-    it('変換先の型が不明な場合、型変換が行われない', () => {
+  });
+  describe('ConvertOptions', () => {
+    it('includes: "all"が指定されていて変換先の型が不明な場合も値がセットされる', () => {
       const converter = new Converter();
-      const result = converter.convert({noConvert: 'abc'}, ConvertTarget);
-      assert.typeOf(result.noConvert, 'string');
+      const result = converter.convert({notDecorated: 'abc'}, OptionSpecified, {target: 'all'});
+      assert.equal(result.notDecorated, 'abc');
     });
-    it('ignoreMissingTypeInfoが指定されていて変換先の型が不明な場合、値がセットされない', () => {
+    it('includes: "typed"が指定されていると、変換先の型情報が取得できるプロパティにのみ値がセットされる', () => {
       const converter = new Converter();
-      const result = converter.convert({noConvert: 'abc'}, ConvertTarget, {ignoreMissingTypeInfo: true});
-      assert.isUndefined(result.noConvert);
+      const result = converter.convert({
+        s: 'abc',
+        decoratedByThirdParty: 'abc',
+        notDecorated: 'abc'
+      }, OptionSpecified, {target: 'typed'});
+      assert.equal(result.s, 'abc');
+      assert.equal(result.decoratedByThirdParty, 'abc');
+      assert.isUndefined(result.notDecorated);
+    });
+    it('includes: "decorated"が指定されていると、@ConvertPropertyが付与されたプロパティにのみ値がセットされる', () => {
+      const converter = new Converter();
+      const result = converter.convert({
+        s: 'abc',
+        decoratedByThirdParty: 'def',
+        notDecorated: 'ghi'
+      }, OptionSpecified, {target: 'decorated'});
+      assert.equal(result.s, 'abc');
+      assert.isUndefined(result.decoratedByThirdParty);
+      assert.isUndefined(result.notDecorated);
     });
     it('excludesが指定されているプロパティには値がセットされない', () => {
       const converter = new Converter();
@@ -137,6 +178,9 @@ describe('converter', () => {
           ]
         });
       assert.deepEqual(result, {s: 'abc'});
+    });
+    it('suppressConversionError', () => {
+
     });
   });
   describe('register()', () => {
