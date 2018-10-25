@@ -25,7 +25,10 @@ class ConvertTarget {
   nil: null;
 
   @ConvertProperty()
-  nestedPlain: {};
+  nestedPlain: {
+      s: string;
+      sa: string[];
+  };
 
   @ConvertProperty()
   nestedClass: NestedClass;
@@ -123,9 +126,15 @@ describe('converter', () => {
       assert.propertyVal(converter.convert({b: NaN}, ConvertTarget), 'b', false);
       assert.propertyVal(converter.convert({b: undefined}, ConvertTarget), 'b', false);
     });
+    it('プレーンなオブジェクトはそのままコピーされる', () => {
+      const converter = new Converter();
+      const result = converter.convert({nestedPlain: {s: 123, sa: ['def', 'ghi']}}, ConvertTarget);
+      assert.instanceOf(result.nestedPlain, Object);
+      // nestedPlain.sは型定義上はstringだが、プレーンな入れ子プロパティは型変換が起こらない
+      assert.deepEqual(result.nestedPlain, <any>{s: 123, sa: ['def', 'ghi']});
+    });
     it('プレーンなオブジェクトからクラスインスタンスへの変換をデフォルトで行える', () => {
       const converter = new Converter();
-      const date = new Date();
       const result = converter.convert({nestedClass: {s: 123}}, ConvertTarget);
       assert.instanceOf(result.nestedClass, NestedClass);
       assert.equal(result.nestedClass.s, '123');

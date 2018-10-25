@@ -3,7 +3,7 @@
 
 import 'reflect-metadata';
 import {Constructor, ClassConstructor, ConvertOp} from './types';
-import {convertToString, convertToNumber, convertToDate, convertToBoolean} from './converters';
+import {convertToString, convertToNumber, convertToDate, convertToBoolean, convertToObject} from './converters';
 import {ConvertOptions, ConvertPropertyOptions} from './options';
 import {METADATA_KEY_CONVERTABLE, METADATA_KEY_CONVERT_PROP} from './decorators';
 
@@ -115,5 +115,6 @@ export class Converter {
     this.register(Number, convertToNumber);
     this.register(Date, convertToDate);
     this.register(Boolean, convertToBoolean);
+    this.register(Object, convertToObject);
   }
 }

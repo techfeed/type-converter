@@ -47,3 +47,7 @@ export function convertToDate(value: any, options?: ConvertOptions): Date | unde
 export function convertToBoolean(value: any, options?: ConvertOptions): boolean | undefined | null {
   return Boolean(value);
 }
+
+export function convertToObject(value: any, options?: ConvertOptions): object {
+  return {...value};
+}
