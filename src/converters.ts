@@ -49,5 +49,8 @@ export function convertToBoolean(value: any, options?: ConvertOptions): boolean 
 }
 
 export function convertToObject(value: any, options?: ConvertOptions): object {
+  if (value === undefined || value === null) {
+    return value;
+  }
   return {...value};
 }

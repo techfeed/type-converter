@@ -82,6 +82,9 @@ export class Converter {
   }
 
   private _convertObject<T>(src: any, dstType: {new(...args: any[]): T}, options?: ConvertOptions): T {
+    if (src === null || src === undefined) {
+      return src;
+    }
     const dst: any = new dstType();
     this.populate(src, dst, dstType, options);
     return dst;

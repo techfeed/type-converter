@@ -70,8 +70,21 @@ class OptionSpecified {
 describe('converter', () => {
 
   describe('convert()', () => {
-    it ('nullやundefinedは変換されずにそのままとなる', () => {
+    it ('nullやundefinedは、Booleanへの変換を指示したときだけfalseになるが、それ以外はそのまま', () => {
       const converter = new Converter();
+      assert.isNull(converter.convert(null, String));
+      assert.isUndefined(converter.convert(undefined, String));
+      assert.isNull(converter.convert(null, Date));
+      assert.isUndefined(converter.convert(undefined, Date));
+      assert.isNull(converter.convert(null, Number));
+      assert.isUndefined(converter.convert(undefined, Number));
+      assert.isNull(converter.convert(null, Object));
+      assert.isUndefined(converter.convert(undefined, Object));
+      // booleanに変換しようとしたときだけfalseになる
+      assert.isFalse(converter.convert(null, Boolean));
+      assert.isFalse(converter.convert(undefined, Boolean));
+      assert.isNull(converter.convert(null, ConvertTarget));
+      assert.isUndefined(converter.convert(undefined, ConvertTarget));
       assert.propertyVal(converter.convert({s: undefined}, ConvertTarget), 's', undefined, 'undefined is not changed');
       assert.propertyVal(converter.convert({s: null}, ConvertTarget), 's', null, 'null is not changed');
     });
