@@ -1,5 +1,6 @@
 import {ConversionError} from './types';
 import {ConvertOptions} from './options';
+import {isPlainObject} from './isplainobject';
 
 export function convertToString(value: any, options?: ConvertOptions): string | undefined | null {
   if (value === undefined || value === null) {
@@ -48,9 +49,24 @@ export function convertToBoolean(value: any, options?: ConvertOptions): boolean 
   return Boolean(value);
 }
 
+/**
+ * 渡されたオブジェクトを「可能な限り」フラットにして返します。
+ * 組み込みのオブジェクト（Date, RegExp, DOMなど）についてはそのまま扱います。
+ * 
+ */
 export function convertToObject(value: any, options?: ConvertOptions): object {
   if (value === undefined || value === null) {
     return value;
   }
-  return {...value};
+  if (isPlainObject(value)) {
+    const result: any = {};
+    Object.keys(value).forEach(propName => {
+      result[propName] = convertToObject(value[propName], options);
+    });
+    return result;
+  } else if (Array.isArray(value)) {
+    return value.map(elem => convertToObject(elem, options));
+  } else {
+    return value;
+  }
 }

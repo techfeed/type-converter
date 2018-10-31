@@ -11,3 +11,8 @@ export class ConversionError extends Error {
     super(message);
   }
 }
+
+/**
+ * void (undefined)に変換したい場合に指定するコンストラクタ
+ */
+export class Undefined {}

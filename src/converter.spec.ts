@@ -1,7 +1,7 @@
 import {Converter} from './converter';
 import {ConvertProperty, Convertable} from './decorators';
 import {assert} from 'chai';
-import {ConversionError} from './types';
+import {ConversionError, Undefined} from './types';
 
 class NestedClass {
   @ConvertProperty()
@@ -23,6 +23,12 @@ class ConvertTarget {
 
   @ConvertProperty()
   nil: null;
+
+  /**
+   * 常にundefinedになる
+   */
+  @ConvertProperty({type: Undefined})
+  undef: string;
 
   @ConvertProperty()
   nestedPlain: {
@@ -151,6 +157,11 @@ describe('converter', () => {
       const result = converter.convert({nestedClass: {s: 123}}, ConvertTarget);
       assert.instanceOf(result.nestedClass, NestedClass);
       assert.equal(result.nestedClass.s, '123');
+    });
+    it('Undefined型を指定されたプロパティは常にundefinedとなる', () => {
+      const converter = new Converter();
+      const result = converter.convert({undef: '123'}, ConvertTarget);
+      assert.isUndefined(result.undef);
     });
     it('配列全ての要素が変換される', () => {
       const converter = new Converter();
