@@ -1,8 +1,10 @@
 import {ConversionError} from './types';
 import {ConvertOptions} from './options';
 import {isPlainObject} from './isplainobject';
+import {Converter} from './converter';
 
-export function convertToString(value: any, options?: ConvertOptions): string | undefined | null {
+export function convertToString(
+  value: any, options?: ConvertOptions, converter?: Converter): string | undefined | null {
   if (value === undefined || value === null) {
     return value;
   }
@@ -15,7 +17,8 @@ export function convertToString(value: any, options?: ConvertOptions): string | 
   return String(value);
 }
 
-export function convertToNumber(value: any, options?: ConvertOptions): number | undefined | null  {
+export function convertToNumber(
+  value: any, options?: ConvertOptions, converter?: Converter): number | undefined | null  {
   if (value === undefined || value === null) {
     return value;
   }
@@ -28,7 +31,7 @@ export function convertToNumber(value: any, options?: ConvertOptions): number | 
   }
   return result;
 }
-export function convertToDate(value: any, options?: ConvertOptions): Date | undefined | null  {
+export function convertToDate(value: any, options?: ConvertOptions, converter?: Converter): Date | undefined | null  {
   if (value === undefined || value === null) {
     return value;
   }
@@ -45,7 +48,8 @@ export function convertToDate(value: any, options?: ConvertOptions): Date | unde
   return result;
 }
 
-export function convertToBoolean(value: any, options?: ConvertOptions): boolean | undefined | null {
+export function convertToBoolean(
+  value: any, options?: ConvertOptions, converter?: Converter): boolean | undefined | null {
   return Boolean(value);
 }
 
@@ -54,7 +58,7 @@ export function convertToBoolean(value: any, options?: ConvertOptions): boolean 
  * 組み込みのオブジェクト（Date, RegExp, DOMなど）についてはそのまま扱います。
  * 
  */
-export function convertToObject(value: any, options?: ConvertOptions): object {
+export function convertToObject(value: any, options?: ConvertOptions, converter?: Converter): object {
   if (value === undefined || value === null) {
     return value;
   }

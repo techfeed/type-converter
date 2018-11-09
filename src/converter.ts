@@ -2,10 +2,18 @@
 'use strict';
 
 import 'reflect-metadata';
-import {Constructor, ClassConstructor, ConvertOp, Undefined} from './types';
+import {Constructor, ClassConstructor, Undefined} from './types';
 import {convertToString, convertToNumber, convertToDate, convertToBoolean, convertToObject} from './converters';
 import {ConvertOptions, ConvertPropertyOptions} from './options';
 import {METADATA_KEY_CONVERTABLE, METADATA_KEY_CONVERT_PROP} from './decorators';
+
+/**
+ * 実際の型変換を行う関数
+ * @param v 変換を行う対象
+ * @param options オプション
+ * @param converter Converter経由で呼び出された場合、この引数に渡されます
+ */
+export type ConvertOp<T> = (v: any, options?: ConvertOptions, converter?: Converter) => T;
 
 /**
  * 型変換を行うクラス。
@@ -35,7 +43,7 @@ export class Converter {
     }
     const converter = this._converters.get(dstType);
     if (converter) {
-      return converter(src, options);
+      return converter(src, options, this);
     }
     return this._convertObject(src, <ClassConstructor<any>>dstType, options);
   }
