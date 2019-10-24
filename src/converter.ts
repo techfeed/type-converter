@@ -61,7 +61,7 @@ export class Converter {
    */
   populate<T>(src: any, dst: any, dstType: Constructor<T>, options?: ConvertOptions): void {
     const mergedOpts = this._mergeConvertOptions(dstType, options);
-    for (const key of Object.keys(src)) {
+    for (const key in src) {
       if (this._isExcludeTarget(key, mergedOpts)) {
         continue;
       }

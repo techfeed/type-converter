@@ -3,6 +3,12 @@ import {ConvertProperty, Convertable} from './decorators';
 import {assert} from 'chai';
 import {ConversionError, Undefined} from './types';
 
+class ConvertSource {
+  // Getterがコピーされることを確認する
+  get calculated(): string {
+    return 'calculated';
+  }
+}
 class NestedClass {
   @ConvertProperty()
   s: string;
@@ -41,6 +47,10 @@ class ConvertTarget {
 
   // design:type メタデータが出力されないため、型変換が発生しない
   noConvert: number;
+
+  // Getter
+  @ConvertProperty()
+  calculated: string;
 }
 
 class ObjectID {
@@ -241,7 +251,13 @@ describe('converter', () => {
             /no/
           ]
         });
-      assert.deepEqual(result, {s: 'abc'});
+      assert.deepEqual(result, <any>{s: 'abc'});
+    });
+    it('Getterもコピー＆変換される', () => {
+      const converter = new Converter();
+      // s以外のプロパティをすべて除外する
+      const result = converter.convert(new ConvertSource(), ConvertTarget);
+      assert.deepEqual(result, <any>{calculated: 'calculated'});
     });
     it('suppressConversionError', () => {
 

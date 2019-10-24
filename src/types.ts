@@ -5,6 +5,7 @@ export type Constructor<T> = ClassConstructor<T> | ((...args: any[]) => T) | Fun
 export class ConversionError extends Error {
   constructor(message?: string) {
     super(message);
+    Object.setPrototypeOf(this, ConversionError.prototype);
   }
 }
 
