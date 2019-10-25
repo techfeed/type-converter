@@ -9,6 +9,15 @@ class ConvertSource {
     return 'calculated';
   }
 }
+
+class SubConvertSource extends ConvertSource {
+  get subCalculated(): string {
+    return 'subCalculated';
+  }
+}
+class SubSubConvertSource extends SubConvertSource {
+}
+
 class NestedClass {
   @ConvertProperty()
   s: string;
@@ -51,6 +60,14 @@ class ConvertTarget {
   // Getter
   @ConvertProperty()
   calculated: string;
+}
+
+class SubConvertTarget extends ConvertTarget {
+  // Getter
+  @ConvertProperty()
+  subCalculated: string;
+}
+class SubSubConvertTarget extends SubConvertTarget {
 }
 
 class ObjectID {
@@ -258,6 +275,12 @@ describe('converter', () => {
       // s以外のプロパティをすべて除外する
       const result = converter.convert(new ConvertSource(), ConvertTarget);
       assert.deepEqual(result, <any>{calculated: 'calculated'});
+    });
+    it('親クラスのGetterもコピー＆変換される', () => {
+      const converter = new Converter();
+      const result = converter.convert(new SubSubConvertSource(), SubSubConvertTarget);
+      assert.equal(result.calculated, 'calculated');
+      assert.equal(result.subCalculated, 'subCalculated');
     });
     it('suppressConversionError', () => {
 
