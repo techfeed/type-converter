@@ -61,7 +61,7 @@ export class Converter {
    */
   populate<T>(src: any, dst: any, dstType: Constructor<T>, options?: ConvertOptions): void {
     const mergedOpts = this._mergeConvertOptions(dstType, options);
-    for (const key in src) {
+    for (const key of this._getAllProperties(src)) {
       if (this._isExcludeTarget(key, mergedOpts)) {
         continue;
       }
@@ -87,6 +87,19 @@ export class Converter {
       dst[key] = this.convert(propVal, type, mergedOpts);
     }
     return dst;
+  }
+
+  _getAllProperties(src: any): string[] {
+    if (!src) {
+      return [];
+    }
+    let names = Object.getOwnPropertyNames(src)
+      .filter(name => (typeof src[name] !== 'function' && name !== '__proto__'));
+    const proto = Object.getPrototypeOf(src);
+    if (proto) {
+      names = names.concat(this._getAllProperties(proto));
+    }
+    return names;
   }
 
   private _convertObject<T>(src: any, dstType: {new(...args: any[]): T}, options?: ConvertOptions): T {
