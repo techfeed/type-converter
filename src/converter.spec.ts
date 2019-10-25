@@ -4,6 +4,8 @@ import {assert} from 'chai';
 import {ConversionError, Undefined} from './types';
 
 class ConvertSource {
+  name = 'ConvertSource';
+  val1 = 1;
   // Getterがコピーされることを確認する
   get calculated(): string {
     return 'calculated';
@@ -11,11 +13,15 @@ class ConvertSource {
 }
 
 class SubConvertSource extends ConvertSource {
+  name = 'SubConvertSource';
+  val2 = 2;
   get subCalculated(): string {
     return 'subCalculated';
   }
 }
 class SubSubConvertSource extends SubConvertSource {
+  name = 'SubSubConvertSource';
+  val3 = 3;
 }
 
 class NestedClass {
@@ -68,6 +74,10 @@ class SubConvertTarget extends ConvertTarget {
   subCalculated: string;
 }
 class SubSubConvertTarget extends SubConvertTarget {
+  @ConvertProperty() name: string;
+  @ConvertProperty() val1: number;
+  @ConvertProperty() val2: number;
+  @ConvertProperty() val3: number;
 }
 
 class ObjectID {
@@ -270,6 +280,14 @@ describe('converter', () => {
         });
       assert.deepEqual(result, <any>{s: 'abc'});
     });
+
+    it('_getAllProperties ですべてのプロパティが列挙できる', () => {
+      const converter = new Converter();
+      const src = new SubSubConvertSource();
+      const keys = converter._getAllProperties(src);
+      // console.log('keys', keys);
+      assert.deepEqual(keys, ['name', 'val1', 'val2', 'val3', 'subCalculated', 'calculated']);
+    });
     it('Getterもコピー＆変換される', () => {
       const converter = new Converter();
       // s以外のプロパティをすべて除外する
@@ -278,10 +296,19 @@ describe('converter', () => {
     });
     it('親クラスのGetterもコピー＆変換される', () => {
       const converter = new Converter();
-      const result = converter.convert(new SubSubConvertSource(), SubSubConvertTarget);
-      assert.equal(result.calculated, 'calculated');
-      assert.equal(result.subCalculated, 'subCalculated');
+      const src = new SubSubConvertSource();
+      const result = converter.convert(src, SubSubConvertTarget);
+      const resultJson = JSON.parse(JSON.stringify(result));
+      assert.deepEqual(resultJson, <any>{
+        name: 'SubSubConvertSource',
+        val1: 1,
+        val2: 2,
+        val3: 3,
+        calculated: 'calculated',
+        subCalculated: 'subCalculated',
+      });
     });
+
     it('suppressConversionError', () => {
 
     });
